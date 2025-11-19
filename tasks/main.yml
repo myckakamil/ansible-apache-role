@@ -1,0 +1,21 @@
+---
+- name: Load varialbes for specific OS
+  ansible.builtin.include_vars: vars/{{ ansible_os_family }}.yaml
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Ensure apache2 is installed
+  ansible.builtin.package:
+    name:
+      - "{{ apache2_package }}"
+    state: present
+
+- name: Ensure apache2 is started and enabled
+  ansible.builtin.service:
+    name: "{{ apache2_package }}"
+    state: started
+    enabled: true
