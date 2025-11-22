@@ -14,8 +14,54 @@
       - "{{ apache2_package }}"
     state: present
 
+- name: Enable SSL module
+  ansible.builtin.command: a2enmod ssl
+  args:
+    creates: "{{ apache_conf_dir }}/mods-enabled/ssl.load"
+  notify: Restart apache2
+
 - name: Ensure apache2 is started and enabled
   ansible.builtin.service:
     name: "{{ apache2_package }}"
     state: started
     enabled: true
+
+- name: Create directory for SSL
+  ansible.builtin.file:
+    path: "{{ apache_conf_dir }}/ssl"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Generate private key
+  community.crypto.openssl_privatekey:
+    path: "{{ apache_conf_dir }}/ssl/selfsigned.key"
+    type: Ed25519
+    size: 2048
+
+- name: Generate CSR
+  community.crypto.openssl_csr:
+    path: "{{ apache_conf_dir }}/ssl/selfsigned.csr"
+    privatekey_path: "{{ apache_conf_dir }}/ssl/selfsigned.key"
+    common_name: "{{ ansible_fqdn | default(inventory_hostname) }}"
+
+- name: Generate self-signed certificate
+  community.crypto.x509_certificate:
+    path: "{{ apache_conf_dir }}/ssl/selfsigned.crt"
+    privatekey_path: "{{ apache_conf_dir }}/ssl/selfsigned.key"
+    csr_path: "{{ apache_conf_dir }}/ssl/selfsigned.csr"
+    provider: selfsigned
+
+- name: Deploy SSL VirtualHost config
+  ansible.builtin.template:
+    src: default-ssl.conf.j2
+    dest: "{{ apache_conf_dir }}/sites-available/default-ssl.conf"
+    mode: '0644'
+
+- name: Enable SSL site by creating symlink
+  ansible.builtin.file:
+    src: "{{ apache_conf_dir }}/sites-available/default-ssl.conf"
+    dest: "{{ apache_conf_dir }}/sites-enabled/default-ssl.conf"
+    state: link
+  notify: Restart apache2
