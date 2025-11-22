@@ -37,7 +37,7 @@
 - name: Generate private key
   community.crypto.openssl_privatekey:
     path: "{{ apache_conf_dir }}/ssl/selfsigned.key"
-    type: Ed25519
+    type: RSA
     size: 2048
 
 - name: Generate CSR
