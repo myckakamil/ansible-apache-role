@@ -1,0 +1,4 @@
+---
+apache_server_name: "{{ ansible_fqdn }}"
+document_root: /var/www/html
+admin_mail: admin@example.com

@@ -1,8 +1,7 @@
 <IfModule mod_ssl.c>
 <VirtualHost _default_:443>
-    ServerAdmin webmaster@localhost
-
-    DocumentRoot /var/www/html
+    ServerAdmin {{ admin_mail }}
+    DocumentRoot {{ document_root }}
 
     SSLEngine on
     SSLCertificateFile      {{ apache_conf_dir }}/ssl/selfsigned.crt

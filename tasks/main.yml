@@ -65,3 +65,9 @@
     dest: "{{ apache_conf_dir }}/sites-enabled/default-ssl.conf"
     state: link
   notify: Restart apache2
+
+- name: Redirect default apache config to config with ssl
+  ansible.builtin.template:
+    src: 000-default.conf.j2
+    dest: "{{ apache_conf_dir }}/sites-available/000-default.conf"
+    mode: "0644"
